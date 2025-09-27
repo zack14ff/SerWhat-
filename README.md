@@ -6,3 +6,5 @@ Easiest way to run many server or any!
 -
 Y:For what it?
 Z:FOR MAKING LAUNCH LOCALE your server
+## How it look Like?
+<img width="1604" height="829" alt="image" src="https://github.com/user-attachments/assets/a6f7f37d-0479-4208-b85d-6f528eeccb32" />
