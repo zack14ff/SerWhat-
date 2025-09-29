@@ -11,5 +11,4 @@ Z:FOR MAKING LAUNCH LOCALE your server
 <img width="1604" height="829" alt="image" src="https://github.com/user-attachments/assets/a6f7f37d-0479-4208-b85d-6f528eeccb32" />
 
 ### Serwhat V2.0(beta)
-
-**image**
+<img width="740" height="291" alt="image" src="https://github.com/user-attachments/assets/4693921e-691c-4be3-9fd9-e3ea28e90abe" />
