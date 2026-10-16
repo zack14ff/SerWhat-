@@ -77,6 +77,31 @@ username в настройках (`account.checkUsername`). Для этого н
 Лучше взять отдельный аккаунт: Telegram ограничивает частоту таких проверок. Если лимит
 сработает, бот на время сам переключится на проверку по t.me.
 
+## Проверка из консоли и подбор через Claude Code
+
+`nickcheck.py` — отдельный скрипт, которому не нужен бот: проверяет ники прямо из терминала.
+
+```bash
+python nickbot/nickcheck.py xlebb crumbly @loafy        # таблица
+python nickbot/nickcheck.py --json xlebb crumbly        # JSON для скриптов и ИИ
+python nickbot/nickcheck.py --only-free --file ideas.txt
+```
+
+Код возврата: `0` — есть свободные, `1` — нет, `2` — ошибка запуска. Результаты
+кэшируются на 15 минут в `.nickcheck-cache.json`. Точность та же, что у бота: через
+Telegram-аккаунт после `python login.py`, иначе по t.me и Fragment.
+
+**Claude Code** подбирает ники с помощью этого скрипта. В репозитории есть skill
+[`/find-nick`](../.claude/skills/find-nick/SKILL.md): открой репозиторий в Claude Code и напиши
+
+```
+/find-nick что-то про хлеб, коротко и мило
+```
+
+Claude Code придумает нешаблонные варианты, запустит `nickcheck.py --json`, отбросит
+занятые, придумает новые и повторит, а в конце покажет только свободные ники, которые
+проверил скрипт. Можно и без команды — просто попросить «подбери свободный ник для…».
+
 ## Команды
 
 | Команда | Что делает |
@@ -94,6 +119,7 @@ username в настройках (`account.checkUsername`). Для этого н
 nickbot/
 ├── bot.py                  # точка входа
 ├── login.py                # вход в Telegram-аккаунт для точной проверки
+├── nickcheck.py            # проверка ников из консоли (для людей и Claude Code)
 ├── nickbot/
 │   ├── username.py         # разбор ников из текста и проверка формата с причинами
 │   ├── checker.py          # занят/свободен: Telegram-аккаунт или t.me + Fragment

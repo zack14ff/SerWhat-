@@ -39,14 +39,14 @@ def normalize(token: str) -> str:
     return token.lstrip("@").lower()
 
 
-def parse_usernames(text: str) -> list[str]:
+def parse_usernames(text: str, limit: int = MAX_PER_MESSAGE) -> list[str]:
     """Достаёт из сообщения ники (через пробел, запятую или с новой строки)."""
     seen: list[str] = []
     for token in re.split(r"[\s,;]+", text):
         name = normalize(token)
         if name and name not in seen:
             seen.append(name)
-    return seen[:MAX_PER_MESSAGE]
+    return seen[:limit]
 
 
 def format_error(name: str) -> str | None:

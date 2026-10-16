@@ -17,3 +17,6 @@ Thumbs.db
 # Сессия Telegram-аккаунта для точной проверки
 *.session
 *.session-journal
+
+# Кэш nickcheck.py
+.nickcheck-cache.json

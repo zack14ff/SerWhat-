@@ -18,3 +18,10 @@ python bot.py
 ```
 
 Подробнее — в [nickbot/README.md](nickbot/README.md).
+
+## Подбор ника через Claude Code
+
+Открой репозиторий в Claude Code и напиши `/find-nick что-то про хлеб, коротко`.
+Claude придумает варианты и проверит каждый скриптом
+[`nickbot/nickcheck.py`](nickbot/nickcheck.py). Можно проверить и вручную:
+`python nickbot/nickcheck.py xlebb crumbly`.
