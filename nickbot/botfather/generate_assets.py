@@ -136,15 +136,15 @@ def make_description(path: Path, w: int = 640, h: int = 360) -> None:
     title = font(int(H * 0.17))
     sub = font(int(H * 0.068), bold=False)
     d.text((W * 0.07, H * 0.14), "NickForge", font=title, fill=WHITE, anchor="lt")
-    d.text((W * 0.07, H * 0.36), "Подбор удобных и свободных ников", font=sub,
+    d.text((W * 0.07, H * 0.36), "Проверка ников + ИИ-подбор свободных", font=sub,
            fill=(255, 255, 255, 230), anchor="lt")
 
-    green, red = (34, 197, 94), (239, 68, 68)
+    green, red, fragment, invalid = (34, 197, 94), (239, 68, 68), (14, 165, 233), (249, 115, 22)
     cf = font(int(H * 0.06))
     pad = H * 0.035
     rows = [
-        [("@shadowfox", green), ("@neon_wolf", green), ("@shadow", red)],
-        [("@kotik_x", green), ("@ivanpetrov", red), ("@imkot", green)],
+        [("@xlebb", red), ("@crumbly", green), ("@loafy", green)],
+        [("@money", fragment), ("xleb_", invalid), ("@breadly", green)],
     ]
     y = H * 0.55
     for row in rows:

@@ -5,14 +5,14 @@
 
 | Поле в BotFather | Команда | Что вставить |
 |---|---|---|
-| Имя | `/newbot`, `/setname` | `NickForge · Подбор ников` |
+| Имя | `/newbot`, `/setname` | `NickForge · Проверка ников` |
 | Username | `/newbot` | `NickForgeBot` (запасные — ниже) |
 | Аватарка | `/setuserpic` | [`avatar.png`](avatar.png) |
 | Описание (What can this bot do?) | `/setdescription` | текст ниже |
 | Картинка описания | `/mybots` → бот → Edit Bot → Edit Description Picture | [`description.png`](description.png) |
 | About (короткое описание) | `/setabouttext` | текст ниже |
 | Команды | `/setcommands` | список ниже |
-| Inline-режим | `/setinline` | `слово, имя или фраза…` |
+| Inline-режим | `/setinline` | `ник для проверки…` |
 
 <p>
   <img src="avatar.png" width="160" alt="Аватарка">
@@ -25,11 +25,11 @@
 ## 1. Создать бота
 
 1. Открой [@BotFather](https://t.me/BotFather) → `/newbot`.
-2. Имя: `NickForge · Подбор ников`
+2. Имя: `NickForge · Проверка ников`
 3. Username (должен заканчиваться на `bot`): `NickForgeBot`.
-   Если занят — по очереди: `NickForgeRuBot`, `NickSmithBot`, `NikPodborBot`,
-   `PodborNikaBot`, `NickIdeasBot`, `UsernameForgeBot`, `TgNickHelperBot`.
-   Или спроси у самого бота: `/nick nick forge bot` 😉
+   Если занят — по очереди: `NickForgeRuBot`, `NickCheckRuBot`, `FreeNickCheckBot`,
+   `NikCheckBot`, `UsernameCheckRuBot`, `SvobodenLiNikBot`, `TgNickCheckBot`.
+   Если поменял — поправь `BOT_USERNAME` и тексты в `nickbot/profile.py`.
 4. BotFather пришлёт **токен** — вставь его в `nickbot/.env`:
    ```
    BOT_TOKEN=1234567890:AAAA...
@@ -54,24 +54,24 @@ python botfather/setup_profile.py
 Показывается в пустом чате перед кнопкой «Старт» (до 512 символов):
 
 ```
-🔨 NickForge — кузница ников.
+🔎 NickForge — проверка ников в Telegram.
 
-Отправь слово, имя или фразу (можно по-русски), и я:
-• подберу удобные и похожие username для Telegram;
-• проверю, какие из них, скорее всего, свободны 🟢;
-• сделаю стильные ники со шрифтами и украшениями для игр и профиля;
-• придумаю случайный ник, если идей нет.
+Отправь ник (например @xlebb) — я скажу:
+🟢 свободен · 🔴 занят · 💎 продаётся на Fragment · ❌ не по формату и почему.
+Можно проверить сразу несколько.
 
-Работаю и в любом чате: набери @NickForgeBot слово.
+🤖 ИИ-подбор (/ai): опиши, какой ник хочешь, — ИИ придумает нешаблонные варианты, сам проверит их и покажет только свободные.
+
+Работаю в любом чате: @NickForgeBot ник
 
 Жми «Старт» 👇
 ```
 
 ### 3.3 `/setabouttext` — About
-Видно в профиле бота и при пересылке ссылки (до 120 символов):
+Видно в профиле бота (до 120 символов):
 
 ```
-Подберу удобный и свободный ник для Telegram, игр и соцсетей по любому слову. Напиши слово — получи идеи ✨
+Проверю, свободен ли ник в Telegram, и объясню, если он не по формату. А ИИ найдёт свободный и нешаблонный 🤖
 ```
 
 ### 3.4 `/setcommands` — меню команд
@@ -79,36 +79,31 @@ python botfather/setup_profile.py
 
 ```
 start - Начать и узнать, что я умею
-nick - Подобрать username: /nick слово
-style - Стильный ник со шрифтами: /style текст
-check - Проверить, свободен ли ник: /check имя
-random - Случайные ники, если нет идей
-settings - Длина, цифры и подчёркивания
-help - Помощь и правила username
+check - Проверить ники: /check xlebb durov
+ai - ИИ-подбор свободного ника (вкл/выкл)
+help - Статусы, правила username и помощь
 ```
 
 ### 3.5 Картинка описания
 `/mybots` → выбери бота → **Edit Bot** → **Edit Description Picture** →
 отправь [`description.png`](description.png) (640×360).
 
-## 4. `/setinline` — работа в любом чате
+## 4. `/setinline` — проверка в любом чате
 
 `/setinline` → выбери бота → плейсхолдер:
 
 ```
-слово, имя или фраза…
+ник для проверки…
 ```
 
-После этого в любом чате можно набрать `@NickForgeBot котик` и выбрать ник из списка.
+После этого в любом чате можно набрать `@NickForgeBot xlebb` и сразу увидеть статус.
 
 ## 5. Остальные настройки (по желанию)
 
 | Команда | Значение | Зачем |
 |---|---|---|
-| `/setjoingroups` | Enable | можно добавить в группу и звать командами `/nick@NickForgeBot слово` |
+| `/setjoingroups` | Enable | можно добавить в группу и проверять командой `/check@NickForgeBot ник` |
 | `/setprivacy` | Enable (по умолчанию) | в группах бот видит только команды, а не всю переписку |
 | `/setinlinefeedback` | Disabled | статистика inline-выбора боту не нужна |
 
-> Если поменяешь имя/username бота — поправь тексты в `nickbot/profile.py`
-> и перезапусти `setup_profile.py`. Картинки перерисовываются командой
-> `python botfather/generate_assets.py`.
+> Картинки перерисовываются командой `python botfather/generate_assets.py`.

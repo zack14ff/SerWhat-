@@ -13,3 +13,7 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Сессия Telegram-аккаунта для точной проверки
+*.session
+*.session-journal
