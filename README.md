@@ -1,15 +1,27 @@
 # SerWhat?
-## Most Stable version is V1.2.0
-<img width="100" height="100" alt="you2" src="https://github.com/user-attachments/assets/3ed2eb15-65e3-4e3b-b085-18279ce396b9" />
-Easiest way to run many server or any!
 
--
--
-Y:For what it?
-Z:FOR MAKING LAUNCH LOCALE your server
-## How it look Like?
-### Serwhat V1
-<img width="1604" height="829" alt="image" src="https://github.com/user-attachments/assets/a6f7f37d-0479-4208-b85d-6f528eeccb32" />
+Репозиторий с двумя проектами — каждый в своей папке:
 
-### Serwhat V2.0(beta)
-<img width="740" height="291" alt="image" src="https://github.com/user-attachments/assets/4693921e-691c-4be3-9fd9-e3ea28e90abe" />
+| Папка | Что это |
+|---|---|
+| [`nickbot/`](nickbot) | 🔎 **NickForge** — Telegram-бот: проверяет, занят ли ник или не по формату (и почему), а ИИ-режим (`/ai`) подбирает свободные нешаблонные ники и сам их проверяет. Аватарка и все тексты для @BotFather — в [`nickbot/botfather`](nickbot/botfather/BOTFATHER.md). |
+| [`serwhat/`](serwhat) | 🖥️ **SerWhat** — менеджер локальных серверов (Minecraft и др.) на Python + Eel. Стабильная версия — V1.2.0. |
+
+## Быстрый старт бота
+
+```bash
+cd nickbot
+pip install -r requirements.txt
+cp .env.example .env    # BOT_TOKEN от @BotFather, ANTHROPIC_API_KEY для ИИ
+python botfather/setup_profile.py
+python bot.py
+```
+
+Подробнее — в [nickbot/README.md](nickbot/README.md).
+
+## Подбор ника через Claude Code
+
+Открой репозиторий в Claude Code и напиши `/find-nick что-то про хлеб, коротко`.
+Claude придумает варианты и проверит каждый скриптом
+[`nickbot/nickcheck.py`](nickbot/nickcheck.py). Можно проверить и вручную:
+`python nickbot/nickcheck.py xlebb crumbly`.

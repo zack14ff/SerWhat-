@@ -1,0 +1,4 @@
+aiogram>=3.22,<4
+anthropic>=1.15
+telethon>=1.40
+Pillow>=10
