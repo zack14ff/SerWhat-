@@ -8,8 +8,11 @@
    заданы TG_API_ID / TG_API_HASH и выполнен вход через `python login.py`.
 
 2. **Приблизительный** — по публичным страницам t.me/<ник> и fragment.com.
-   Работает без аккаунта, но зарезервированные/скрытые ники может принять за
-   свободные. Используется, если точный способ не настроен или упёрся в лимит.
+   Находит занятые и продающиеся ники, но не может подтвердить, что ник
+   свободен: у зарезервированных и запрещённых ников (например, после удалённых
+   аккаунтов) страница t.me выглядит так же, как у свободных. Поэтому такие ники
+   получают статус LIKELY_FREE, а не FREE. Используется, если точный способ не
+   настроен или упёрся в лимит.
 """
 
 from __future__ import annotations
@@ -35,19 +38,24 @@ _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; NickForgeBot/2.0; username c
 
 
 class Status(str, Enum):
-    FREE = "free"
+    FREE = "free"                # свободен — подтвердил сам Telegram
+    LIKELY_FREE = "likely_free"  # не найден на t.me и Fragment, Telegram не подтверждал
     TAKEN = "taken"
     FRAGMENT = "fragment"
     INVALID = "invalid"
     UNKNOWN = "unknown"
 
 
+# Статусы, при которых ник стоит пробовать занять
+AVAILABLE = frozenset({Status.FREE, Status.LIKELY_FREE})
+
 STATUS_ICON = {
-    Status.FREE: "🟢", Status.TAKEN: "🔴", Status.FRAGMENT: "💎",
+    Status.FREE: "🟢", Status.LIKELY_FREE: "🟡", Status.TAKEN: "🔴", Status.FRAGMENT: "💎",
     Status.INVALID: "❌", Status.UNKNOWN: "⚪",
 }
 STATUS_TEXT = {
     Status.FREE: "свободен",
+    Status.LIKELY_FREE: "не найден — возможно свободен, но Telegram не подтвердил",
     Status.TAKEN: "занят",
     Status.FRAGMENT: "на Fragment — только покупка",
     Status.INVALID: "не по формату",
@@ -77,7 +85,7 @@ def parse_tme_page(html: str) -> Status:
     if "tgme_page_extra" in html or "tgme_page_photo_image" in html:
         return Status.TAKEN
     if "tgme_page" in html:
-        return Status.FREE
+        return Status.LIKELY_FREE
     return Status.UNKNOWN
 
 
@@ -188,6 +196,6 @@ class Checker:
         except (aiohttp.ClientError, asyncio.TimeoutError):
             pass
 
-        if tme is Status.FREE:
-            return CheckResult(name, Status.FREE, "скорее всего свободен (проверка по t.me)")
+        if tme is Status.LIKELY_FREE:
+            return CheckResult(name, Status.LIKELY_FREE)
         return CheckResult(name, Status.UNKNOWN)

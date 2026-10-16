@@ -5,18 +5,20 @@
 
     python nickcheck.py xlebb crumbly @loafy t.me/durov
     python nickcheck.py --json xlebb crumbly          # машиночитаемый вывод
-    python nickcheck.py --only-free a1 b2 c3          # только свободные
+    python nickcheck.py --only-free a1 b2 c3          # только свободные и «возможно свободные»
     python nickcheck.py --file candidates.txt         # по одному нику в строке
     echo "xlebb crumbly" | python nickcheck.py -      # из stdin
 
-Статусы: free · taken · fragment (продаётся на Fragment) · invalid (не по
-формату, с причиной) · unknown (не удалось проверить).
+Статусы: free (подтвердил Telegram) · likely_free (не найден на t.me и Fragment,
+Telegram не подтверждал — может оказаться зарезервирован) · taken · fragment
+(продаётся на Fragment) · invalid (не по формату, с причиной) · unknown.
 
-Точная проверка — через Telegram-аккаунт, если настроены TG_API_ID/TG_API_HASH
-в .env и выполнен `python login.py`. Иначе — по страницам t.me и fragment.com
-(precise=false: «скорее всего свободен»).
+Статус free бывает только при точной проверке через Telegram-аккаунт: нужны
+TG_API_ID/TG_API_HASH в .env и один раз `python login.py`. Без неё свободные
+ники получают likely_free — по публичным страницам свободный ник не отличить
+от зарезервированного.
 
-Код возврата: 0 — есть хотя бы один свободный, 1 — свободных нет, 2 — ошибка.
+Код возврата: 0 — есть free или likely_free, 1 — нет, 2 — ошибка.
 """
 
 from __future__ import annotations
@@ -33,7 +35,7 @@ import aiohttp
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from nickbot.checker import STATUS_ICON, Checker, CheckResult, Status  # noqa: E402
+from nickbot.checker import AVAILABLE, STATUS_ICON, Checker, CheckResult, Status  # noqa: E402
 from nickbot.config import SESSION_PATH, load_config  # noqa: E402
 from nickbot.username import parse_usernames  # noqa: E402
 
@@ -43,6 +45,7 @@ MAX_NAMES = 50
 
 STATUS_RU = {
     Status.FREE: "свободен",
+    Status.LIKELY_FREE: "возможно свободен — Telegram не подтвердил",
     Status.TAKEN: "занят",
     Status.FRAGMENT: "на Fragment — только покупка",
     Status.INVALID: "не по формату",
@@ -71,8 +74,10 @@ def save_cache(cache: dict[str, dict]) -> None:
 
 
 def from_cache(entry: dict) -> CheckResult:
-    return CheckResult(entry["username"], Status(entry["status"]), entry.get("reason", ""),
-                       entry.get("precise", False))
+    status = Status(entry["status"])
+    if status is Status.FREE and not entry.get("precise"):
+        status = Status.LIKELY_FREE   # запись из старой версии, где веб-проверка писала free
+    return CheckResult(entry["username"], status, entry.get("reason", ""), entry.get("precise", False))
 
 
 # --------------------------------------------------------------------------- #
@@ -135,8 +140,6 @@ def print_table(results: list[CheckResult], precise_mode: bool) -> None:
     width = max((len(r.username) for r in results), default=5) + 1
     for r in results:
         text = STATUS_RU[r.status]
-        if r.status is Status.FREE and not r.precise:
-            text = "скорее всего свободен"
         if r.status is Status.INVALID and r.reason:
             text += f": {r.reason}"
         elif r.status is Status.FRAGMENT and r.reason:
@@ -144,8 +147,12 @@ def print_table(results: list[CheckResult], precise_mode: bool) -> None:
         name = r.username if r.status is Status.INVALID else f"@{r.username}"
         print(f"{STATUS_ICON[r.status]} {name:<{width + 1}} {text}")
     free = sum(r.status is Status.FREE for r in results)
+    likely = sum(r.status is Status.LIKELY_FREE for r in results)
     mode = "точная (Telegram)" if precise_mode else "по t.me и Fragment"
-    print(f"\nСвободно: {free} из {len(results)} · проверка: {mode}")
+    print(f"\nСвободно: {free} · возможно свободно: {likely} · всего: {len(results)} · проверка: {mode}")
+    if likely:
+        print("🟡 Telegram не подтверждал эти ники — часть может оказаться зарезервирована.\n"
+              "   Точная проверка: TG_API_ID/TG_API_HASH в nickbot/.env и `python nickbot/login.py`.")
 
 
 def main() -> int:
@@ -176,7 +183,7 @@ def main() -> int:
         return 2
 
     results, precise_mode = asyncio.run(check(names, not args.no_cache, args.json))
-    shown = [r for r in results if r.status is Status.FREE] if args.only_free else results
+    shown = [r for r in results if r.status in AVAILABLE] if args.only_free else results
 
     if args.json:
         print(json.dumps({"precise_mode": precise_mode, "results": [to_dict(r) for r in shown]},
@@ -185,7 +192,7 @@ def main() -> int:
         print_table(shown, precise_mode)
     else:
         print("Свободных нет.")
-    return 0 if any(r.status is Status.FREE for r in results) else 1
+    return 0 if any(r.status in AVAILABLE for r in results) else 1
 
 
 if __name__ == "__main__":

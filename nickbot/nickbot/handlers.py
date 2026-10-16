@@ -22,7 +22,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from . import texts
 from .ai import AIUnavailable, NickAI, free_first
-from .checker import STATUS_ICON, Checker, CheckResult, Status
+from .checker import AVAILABLE, STATUS_ICON, Checker, CheckResult, Status
 from .username import MAX_PER_MESSAGE, parse_usernames
 
 log = logging.getLogger(__name__)
@@ -42,7 +42,9 @@ AI_OFF_WORDS = {"off", "stop", "выкл", "выключить", "стоп"}
 
 def describe(r: CheckResult) -> str:
     if r.status is Status.FREE:
-        return "свободен" if r.precise else "скорее всего свободен"
+        return "свободен"
+    if r.status is Status.LIKELY_FREE:
+        return "не найден — возможно свободен, Telegram не подтвердил"
     if r.status is Status.INVALID:
         return f"не по формату: {escape(r.reason)}"
     if r.status is Status.FRAGMENT:
@@ -59,9 +61,15 @@ def format_line(r: CheckResult) -> str:
 
 def format_check(results: list[CheckResult]) -> str:
     lines = [format_line(r) for r in results]
+    free = sum(r.status is Status.FREE for r in results)
+    likely = sum(r.status is Status.LIKELY_FREE for r in results)
     if len(results) > 1:
-        free = sum(r.status is Status.FREE for r in results)
-        lines += ["", f"Свободно: <b>{free}</b> из {len(results)}"]
+        summary = f"Свободно: <b>{free}</b> из {len(results)}"
+        if likely:
+            summary += f" · возможно свободно: <b>{likely}</b>"
+        lines += ["", summary]
+    if likely:
+        lines += ["", texts.LIKELY_FREE_NOTE]
     return "\n".join(lines)
 
 
@@ -69,11 +77,13 @@ def format_ai_reply(text: str, checked: list[CheckResult]) -> str:
     parts = [f"🤖 {escape(text[:2500])}" if text else "🤖 Готово."]
     if checked:
         ordered = free_first(checked)
-        free = [r for r in ordered if r.status is Status.FREE]
+        free = [r for r in ordered if r.status in AVAILABLE]
         busy = [r for r in ordered if r.status in (Status.TAKEN, Status.FRAGMENT)]
         other = [r for r in ordered if r.status in (Status.INVALID, Status.UNKNOWN)]
         parts.append(f"\n<b>ИИ проверил ников: {len(checked)}</b>")
         parts += [format_line(r) for r in free[:30]]
+        if any(r.status is Status.LIKELY_FREE for r in free):
+            parts.append(texts.LIKELY_FREE_NOTE)
         if busy:
             names = ", ".join(f"@{r.username}" for r in busy[:40])
             parts.append(f"🔴 заняты / на Fragment ({len(busy)}): {escape(names)}")
@@ -85,7 +95,7 @@ def format_ai_reply(text: str, checked: list[CheckResult]) -> str:
 
 def check_keyboard(user_id: int, results: list[CheckResult],
                    ai: NickAI | None) -> InlineKeyboardMarkup | None:
-    unavailable = [r.username for r in results if r.status not in (Status.FREE, Status.UNKNOWN)]
+    unavailable = [r.username for r in results if r.status not in AVAILABLE | {Status.UNKNOWN}]
     if not ai or not unavailable:
         return None
     _last_unavailable[user_id] = unavailable[:5]
@@ -144,7 +154,7 @@ async def run_ai(message: Message, user_id: int, prompt: str, ai: NickAI) -> Non
             if time.monotonic() - last_edit < 1.5:
                 return
             last_edit = time.monotonic()
-            free = sum(r.status is Status.FREE for r in checked)
+            free = sum(r.status in AVAILABLE for r in checked)
             last = "\n".join(format_line(r) for r in checked[-8:])
             try:
                 await safe_edit(status, texts.AI_PROGRESS.format(n=len(checked), free=free, last=last))

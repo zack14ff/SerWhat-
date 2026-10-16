@@ -15,7 +15,7 @@ def run(coro):
 
 def test_parse_tme_page():
     assert parse_tme_page(TME_TAKEN) is Status.TAKEN
-    assert parse_tme_page(TME_EMPTY) is Status.FREE
+    assert parse_tme_page(TME_EMPTY) is Status.LIKELY_FREE
     assert parse_tme_page("<html>captcha</html>") is Status.UNKNOWN
 
 
@@ -62,7 +62,8 @@ def test_web_check_statuses():
     })
     results = {r.username: r for r in run(checker.check_many(["@Durov", "xlebb", "money", "xl"]))}
     assert results["durov"].status is Status.TAKEN
-    assert results["xlebb"].status is Status.FREE and not results["xlebb"].precise
+    # по вебу свободный ник не отличить от зарезервированного — только «возможно свободен»
+    assert results["xlebb"].status is Status.LIKELY_FREE and not results["xlebb"].precise
     assert results["money"].status is Status.FRAGMENT
     assert results["xl"].status is Status.INVALID
     assert "https://t.me/xl" not in checker.requests  # невалидные ники не запрашиваем

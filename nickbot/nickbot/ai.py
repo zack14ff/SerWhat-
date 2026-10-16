@@ -33,9 +33,11 @@ SYSTEM_PROMPT = """\
 не заканчивается на «_», без «__» подряд. Регистр не важен.
 
 У тебя есть инструмент check_usernames — он по-настоящему проверяет ники в Telegram и \
-возвращает статус: free (свободен), taken (занят), fragment (продаётся на Fragment — \
-просто так не занять), invalid (не по формату или запрещён), unknown (не удалось проверить). \
-Никогда не называй ник свободным, если не проверил его этим инструментом и не получил free.
+возвращает статус: free (свободен — подтвердил Telegram), likely_free (не найден на t.me и \
+Fragment, но Telegram не подтверждал — может оказаться зарезервирован или запрещён), \
+taken (занят), fragment (продаётся на Fragment — просто так не занять), invalid (не по формату \
+или запрещён), unknown (не удалось проверить). Свободным называй только free; likely_free \
+называй «возможно свободен» и не выдавай за гарантированно свободный.
 
 Как работать:
 - Пойми, что человеку нужно: смысл, настроение, язык, длина, для чего ник.
@@ -46,7 +48,8 @@ SYSTEM_PROMPT = """\
 - Проверяй кандидатов пачками по 8–15 штук. Если свободных мало — придумай новые и \
 проверь ещё раз. Обычно хватает 2–3 раундов.
 - В конце ответь по-русски, коротко, простым текстом без Markdown: 3–8 лучших \
-СВОБОДНЫХ вариантов, каждый с @ и пояснением в несколько слов. Если подходящих \
+вариантов со статусом free (если их мало — добавь likely_free с пометкой «возможно»), \
+каждый с @ и пояснением в несколько слов. Если подходящих \
 свободных нет — честно скажи и предложи, как изменить запрос.
 """
 
@@ -54,7 +57,7 @@ CHECK_TOOL = {
     "name": "check_usernames",
     "description": (
         "Проверяет в Telegram, свободны ли username. Принимает до 15 ников без @. "
-        "Для каждого возвращает status: free | taken | fragment | invalid | unknown и reason."
+        "Для каждого возвращает status: free | likely_free | taken | fragment | invalid | unknown и reason."
     ),
     "input_schema": {
         "type": "object",
@@ -199,5 +202,6 @@ def _text_of(response) -> str:
 
 
 def free_first(results: list[CheckResult]) -> list[CheckResult]:
-    order = {Status.FREE: 0, Status.FRAGMENT: 1, Status.TAKEN: 2, Status.UNKNOWN: 3, Status.INVALID: 4}
+    order = {Status.FREE: 0, Status.LIKELY_FREE: 1, Status.FRAGMENT: 2, Status.TAKEN: 3,
+             Status.UNKNOWN: 4, Status.INVALID: 5}
     return sorted(results, key=lambda r: order[r.status])
