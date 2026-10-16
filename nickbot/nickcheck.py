@@ -104,7 +104,7 @@ async def check(names: list[str], use_cache: bool, quiet: bool) -> tuple[list[Ch
     tg = await open_telegram(quiet) if todo else None
     try:
         if todo:
-            async with aiohttp.ClientSession() as http:
+            async with aiohttp.ClientSession(trust_env=True) as http:
                 for r in await Checker(http, tg).check_many(todo):
                     fresh[r.username] = r
     finally:

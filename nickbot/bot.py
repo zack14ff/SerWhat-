@@ -50,7 +50,7 @@ async def main() -> None:
 
     tg = await start_telegram_client(config)
     try:
-        async with aiohttp.ClientSession() as http:
+        async with aiohttp.ClientSession(trust_env=True) as http:
             checker = Checker(http, tg)
             ai = None
             if config.ai_configured:
